@@ -1,0 +1,42 @@
+import cv2
+
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+
+
+cap = cv2.VideoCapture(0)
+cv2.namedWindow('Detecção de Faces e Olhos', cv2.WINDOW_NORMAL)
+
+print("Pressione 'q' para sair, 's' para salvar foto.")
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("Erro na captura de vídeo.")
+        break
+
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+    for (x, y, w, h) in faces:
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(frame, 'Rosto', (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+        roi_gray = gray[y:y + h, x:x + w]
+        roi_color = frame[y:y + h, x:x + w]
+        eyes = eye_cascade.detectMultiScale(roi_gray)
+        for (ex, ey, ew, eh) in eyes:
+            cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (255, 0, 0), 2)  # Azul para olhos
+
+    cv2.imshow('Detecção de Faces e Olhos', frame)
+
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):
+        break
+    elif key == ord('s'):
+        cv2.imwrite('foto_salva.jpg', frame)
+        print("Foto salva como 'foto_salva.jpg'!")
+
+cap.release()
+cv2.destroyAllWindows()
+print("Encerrado.")
